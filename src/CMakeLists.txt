@@ -1,6 +1,6 @@
 
 add_executable(TeenyWare main.c)
-target_compile_options(TeenyWare PRIVATE -Wall -Werror -O0 -g)
+target_compile_options(TeenyWare PRIVATE -Wall -g)
 target_link_libraries(TeenyWare PRIVATE raylib)
 
 # Copy resources to bin directory during build

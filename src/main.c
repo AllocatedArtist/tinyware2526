@@ -3,11 +3,13 @@
 #include <stdio.h>
 
 #include "PopupStack.h"
+#include "Captcha.h"
 
 #define PLAYER_LIVES 3
 
 struct {
   int playerLives;
+  int completedCaptchas;
   PopupStack popupStack;
   Popup currentPopup;
 } Globals;
@@ -30,11 +32,13 @@ void UpdateDrawLoop() {
                   .height = Globals.currentPopup.imageTexture.height},
       (Vector2){.x = 0.0f, .y = 0.0f}, WHITE);
 
+  DrawText("bruh ts is peak", 20, 20, 40, DARKGRAY);
+
   EndDrawing();
 }
 
 int main() {
-  InitWindow(1600, 1480, "Window");
+  InitWindow(1000, 1000, "Window");
 
   PopupStack popups = PopupStackCreate();
   PopupStackPush(&popups, "resources/textures/test1.jpg", 69);
