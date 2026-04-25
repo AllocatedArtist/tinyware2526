@@ -44,8 +44,7 @@ void PopupStackPush(PopupStack *stack, const char *imagePath, int number) {
 
 int PopupStackIsEmpty(PopupStack stack) { return stack.headIdx < 0; }
 
-Popup PopupStackPop(PopupStack *stack) {
-  assert(stack->headIdx + 1 > 0 && "Cannot pop empty stack!");
+void PopupStackPop(PopupStack *stack) {
   assert(stack->headIdx >= 0 && "Invalid head index. Cannot pop stack.");
 
   Popup popup = stack->data[stack->headIdx--];
@@ -53,8 +52,11 @@ Popup PopupStackPop(PopupStack *stack) {
   popup.number = -1;
   UnloadTexture(popup.imageTexture);
   popup.imageTexture = (Texture2D){};
+}
 
-  return popup;
+Popup PopupStackPeek(PopupStack stack) {
+  assert(stack.headIdx >= 0 && "Invalid head index. Cannot pop stack.");
+  return stack.data[stack.headIdx];
 }
 
 void PopupStackDelete(PopupStack *popupStack) {

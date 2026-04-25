@@ -9,26 +9,29 @@
 struct {
   int playerLives;
   PopupStack popupStack;
-  Popup currentPopup;
 } Globals;
 
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack = PopupStackCreate();
-  Globals.currentPopup = PopupDefault();
+
+  PopupStackPush(&Globals.popupStack, "resources/textures/test1.png", 69);
+  PopupStackPush(&Globals.popupStack, "resources/textures/test2.png", 420);
+  PopupStackPush(&Globals.popupStack, "resources/textures/test3.png", 21);
 }
 
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 
-  DrawTextureRec(
-      Globals.currentPopup.imageTexture,
-      (Rectangle){.x = 0.0f,
-                  .y = 0.0f,
-                  .width = Globals.currentPopup.imageTexture.width,
-                  .height = Globals.currentPopup.imageTexture.height},
-      (Vector2){.x = 0.0f, .y = 0.0f}, WHITE);
+  Popup currentPopup = PopupStackPeek(Globals.popupStack);
+
+  DrawTextureRec(currentPopup.imageTexture,
+                 (Rectangle){.x = 0.0f,
+                             .y = 0.0f,
+                             .width = currentPopup.imageTexture.width,
+                             .height = currentPopup.imageTexture.height},
+                 (Vector2){.x = 100.0f, .y = 100.0f}, WHITE);
 
   EndDrawing();
 }
@@ -36,21 +39,16 @@ void UpdateDrawLoop() {
 int main() {
   InitWindow(1600, 1480, "Window");
 
-  PopupStack popups = PopupStackCreate();
-  PopupStackPush(&popups, "resources/textures/test1.jpg", 69);
-  PopupStackPush(&popups, "resources/textures/test2.jpg", 420);
-  PopupStackPush(&popups, "resources/textures/test3.jpg", 21);
+  InitGlobals();
 
   printf("Started Game\n");
-
-  Globals.currentPopup = PopupStackPop(&popups);
 
   while (!WindowShouldClose()) {
     UpdateDrawLoop();
   }
 
   // This will never be called in the web build
-  PopupStackDelete(&popups);
+  PopupStackDelete(&Globals.popupStack);
 
   return 0;
 }
