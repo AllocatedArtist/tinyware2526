@@ -1,50 +1,56 @@
 #include <raylib.h>
-#include <stdio.h>
-#include <stdlib.h>
 
-#define STACK_DEFAULT_CAPACITY 5
+#include <stdio.h>
+
+#include "PopupStack.h"
+
 #define PLAYER_LIVES 3
 
 struct {
   int playerLives;
+  PopupStack popupStack;
+  Popup currentPopup;
 } Globals;
 
-typedef struct {
-  const char *image;
-  int number;
-} Popup;
-
-typedef struct {
-  Popup *data;
-  int headIdx;
-  int size;
-  int capacity;
-} PopupStack;
-
-PopupStack PopupStackCreate() {
-  PopupStack stack;
-  stack.data = malloc(sizeof(PopupStack) * STACK_DEFAULT_CAPACITY);
-  stack.headIdx = -1;
-  stack.size = 0;
-  stack.capacity = STACK_DEFAULT_CAPACITY;
+void InitGlobals() {
+  Globals.playerLives = PLAYER_LIVES;
+  Globals.popupStack = PopupStackCreate();
+  Globals.currentPopup = PopupDefault();
 }
-
-void PopupStackDelete(PopupStack *popupStack) { free(popupStack->data); }
-
-void InitGlobals() { Globals.playerLives = PLAYER_LIVES; }
 
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
+
+  DrawTextureRec(
+      Globals.currentPopup.imageTexture,
+      (Rectangle){.x = 0.0f,
+                  .y = 0.0f,
+                  .width = Globals.currentPopup.imageTexture.width,
+                  .height = Globals.currentPopup.imageTexture.height},
+      (Vector2){.x = 0.0f, .y = 0.0f}, WHITE);
 
   EndDrawing();
 }
 
 int main() {
   InitWindow(1600, 1480, "Window");
-  printf("Started Game");
+
+  PopupStack popups = PopupStackCreate();
+  PopupStackPush(&popups, "resources/textures/test1.jpg", 69);
+  PopupStackPush(&popups, "resources/textures/test2.jpg", 420);
+  PopupStackPush(&popups, "resources/textures/test3.jpg", 21);
+
+  printf("Started Game\n");
+
+  Globals.currentPopup = PopupStackPop(&popups);
+
   while (!WindowShouldClose()) {
     UpdateDrawLoop();
   }
+
+  // This will never be called in the web build
+  PopupStackDelete(&popups);
+
   return 0;
 }
