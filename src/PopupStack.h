@@ -165,9 +165,9 @@ void PopupStackDraw(PopupStack popupStack) {
   for (int i = 0; i < popupStack.headIdx; ++i) {
     Popup popup = popupStack.data[i];
 
-    DrawRectangleLines(currentPosOffset.x - scale.x * 0.5f,
-                       currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
-                       GREEN);
+    DrawRectangle(currentPosOffset.x - scale.x * 0.5f,
+                  currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
+                  DARKGRAY);
 
     float imgWidth = popup.imageTexture.width;
     float imgHeight = popup.imageTexture.height;
@@ -183,7 +183,8 @@ void PopupStackDraw(PopupStack popupStack) {
         (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, GRAY);
 
     const char *text = TextFormat("%d", popup.number);
-    DrawText(text, currentPosOffset.x, currentPosOffset.y, 24, RED);
+    DrawText(text, currentPosOffset.x + scale.x * 0.5 - 24,
+                currentPosOffset.y - scale.y * 0.5f, 24, RED);
 
     currentPosOffset.x += imageOffset.x;
     currentPosOffset.y -= imageOffset.y;
@@ -194,9 +195,9 @@ void PopupStackDraw(PopupStack popupStack) {
   float imgWidth = currentPopup.imageTexture.width;
   float imgHeight = currentPopup.imageTexture.height;
 
-  DrawRectangleLines(currentPosOffset.x - scale.x * 0.5f,
+  DrawRectangle(currentPosOffset.x - scale.x * 0.5f,
                      currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
-                     GREEN);
+                     DARKGRAY);
 
   DrawTexturePro(
       currentPopup.imageTexture,
@@ -208,7 +209,8 @@ void PopupStackDraw(PopupStack popupStack) {
       (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, WHITE);
 
   const char *text = TextFormat("%d", currentPopup.number);
-  DrawText(text, currentPosOffset.x, currentPosOffset.y, 24, RED);
+  DrawText(text, currentPosOffset.x + scale.x * 0.5 - 24,
+            currentPosOffset.y - scale.y * 0.5f, 24, RED);
 }
 
 void LoadAllPopupTextures(TextureHashMap *hashMap) {
