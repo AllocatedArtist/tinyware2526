@@ -100,26 +100,28 @@ void PopupStackDraw(PopupStack popupStack) {
 
   Vector2 currentPosOffset = startPos;
 
-  Vector2 scale = {300.0f, 500.0f};
+  Vector2 scale = {400.0f, 500.0f};
   Vector2 imageOffset;
   imageOffset.x = scale.x * 0.1f;
   imageOffset.y = scale.y * 0.1f;
 
   Vector2 borderOffset;
   borderOffset.x = scale.x * 0.012f;
-  borderOffset.y = 16;
+  borderOffset.y = 32;
 
   for (int i = 0; i < popupStack.headIdx; ++i) {
     Popup popup = popupStack.data[i];
 
+    // Backing of popup
     DrawRectangle(currentPosOffset.x - (scale.x * 0.5f) - borderOffset.x,
                   currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y,
-                  scale.x + borderOffset.x, scale.y + borderOffset.y,
+                  scale.x + borderOffset.x, scale.y + borderOffset.y + 4,
                   DARKGRAY);
 
     float imgWidth = popup.imageTexture.width;
     float imgHeight = popup.imageTexture.height;
 
+    // Popup Ad itself
     DrawTexturePro(
         popup.imageTexture,
         (Rectangle){
@@ -130,13 +132,18 @@ void PopupStackDraw(PopupStack popupStack) {
                     .height = scale.y},
         (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, GRAY);
 
-    DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 16,
+
+    // Button for number
+    DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 32,
         currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, GRAY);
+    
 
+    // Text for number
     const char *text = TextFormat("%d", popup.number);
-    DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 16,
-                currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, 24, RED);
+    DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 22,
+                currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24, RED);
 
+    // Changes position of next ad
     currentPosOffset.x += imageOffset.x;
     currentPosOffset.y -= imageOffset.y;
   }
@@ -146,11 +153,13 @@ void PopupStackDraw(PopupStack popupStack) {
   float imgWidth = currentPopup.imageTexture.width;
   float imgHeight = currentPopup.imageTexture.height;
 
+  // Backing of popup
   DrawRectangle(currentPosOffset.x - (scale.x * 0.5f) - borderOffset.x,
                 currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y,
-                scale.x + 2 * borderOffset.x, scale.y + 2 * borderOffset.y,
+                scale.x + 2 * borderOffset.x, scale.y + borderOffset.y + 4,
                 DARKGRAY);
 
+  // Popup Ad itself
   DrawTexturePro(
       currentPopup.imageTexture,
       (Rectangle){.x = 0.0f, .y = 0.0f, .width = imgWidth, .height = imgHeight},
@@ -160,12 +169,14 @@ void PopupStackDraw(PopupStack popupStack) {
                   .height = scale.y},
       (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, WHITE);
 
-  DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 16,
+  // Button for number
+  DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 32,
       currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, WHITE);
 
+  // Text for number
   const char *text = TextFormat("%d", currentPopup.number);
-  DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 16,
-            currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, 24, RED);
+  DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 22,
+            currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24, RED);
 }
 
 void LoadAllPopupTextures(TextureHashMap *hashMap) {

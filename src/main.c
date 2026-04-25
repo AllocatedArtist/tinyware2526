@@ -11,10 +11,12 @@
 #define CAPTCHA_SPAWNRATE 15
 #define MAX_CAPTCHAS_COMPLETED 10
 
-typedef struct {
-  Sound incorrect;
-  Sound captchaDone;
-  Sound vine;
+struct {
+    Music backgroundMusic;
+    Sound incorrect;
+    Sound captchaSpawn;
+    Sound captchaDone;
+    Sound vine;
 } Sounds;
 
 struct {
@@ -51,9 +53,11 @@ void InitGlobals() {
 
   InitAudioDevice();
 
-  Globals.soundLib.incorrect = LoadSound("resources/audio/Laugh.wav");
-  Globals.soundLib.captchaDone = LoadSound("resources/audio/Laugh.wav");
-  Globals.soundLib.vine = LoadSound("resources/audio/Laugh.wav");
+  Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
+  Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+  Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
+  Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
+  Sounds.vine = LoadSound("resources/audio/vineboom.pm3");
 
   Globals.texturesMap = TextureHashMapCreate();
 
@@ -79,18 +83,16 @@ void UpdateDrawLoop() {
 
   if (!PopupStackIsEmpty(Globals.popupStack)) {
     PopupStackDraw(Globals.popupStack);
-    if (Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
-      switch (PopupStackReadInput(Globals.popupStack)) {
-      case POPUP_PRESSED_FAILURE:
-        PlaySound(Globals.soundLib.incorrect);
-        LoseLife();
-        break;
-      case POPUP_PRESSED_SUCCESSFULLY:
-        PopupStackPop(&Globals.popupStack);
-        break;
-      default: // Idling
-        break;
-      }
+    switch (PopupStackReadInput(Globals.popupStack)) {
+    case POPUP_PRESSED_FAILURE:
+      PlaySound(Sounds.incorrect);
+      LoseLife();
+      break;
+    case POPUP_PRESSED_SUCCESSFULLY:
+      PopupStackPop(&Globals.popupStack);
+      break;
+    default: // Idling
+      break;
     }
   }
 
@@ -123,9 +125,16 @@ int main() {
 
   printf("Started Game\n");
 
+  PlayMusicStream(Sounds.backgroundMusic);
+  SetMusicVolume(Sounds.backgroundMusic, 1.0f);
+
   while (!WindowShouldClose()) {
     UpdateDrawLoop();
   }
+
+  UnloadMusicStream(music);
+
+  CloseAudioDevice();
 
   return 0;
 }
