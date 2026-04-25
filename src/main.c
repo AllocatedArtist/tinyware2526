@@ -2,16 +2,16 @@
 
 #include <stdio.h>
 
-#include "PopupStack.h"
 #include "Captcha.h"
+#include "PopupStack.h"
 
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 1.5
 
 typedef struct {
-    Sound incorrect;
-    Sound captchaDone;
-    Sound vine;
+  Sound incorrect;
+  Sound captchaDone;
+  Sound vine;
 } Sounds;
 
 struct {
@@ -21,6 +21,8 @@ struct {
   TextureHashMap texturesMap;
   float popupSpawnTimer;
   Sounds soundLib;
+
+  Captcha currentCaptcha;
 } Globals;
 
 void UpdatePopupSpawnTimer() {
@@ -31,17 +33,31 @@ void UpdatePopupSpawnTimer() {
   }
 }
 
+void LoseLife() {
+  --Globals.playerLives;
+  if (Globals.playerLives <= 0) {
+    // Lose Game
+  }
+}
+
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack = PopupStackCreate();
 
   InitAudioDevice();
 
-  Globals.soundLib.incorrect = LoadSound("resources/audio/laugh.wav");
-  Globals.soundLib.captchaDone = LoadSound("resources/audio/laugh.wav");
-  Globals.soundLib.vine = LoadSound("resources/audio/laugh.wav");
+  Globals.soundLib.incorrect = LoadSound("resources/audio/Laugh.wav");
+  Globals.soundLib.captchaDone = LoadSound("resources/audio/Laugh.wav");
+  Globals.soundLib.vine = LoadSound("resources/audio/Laugh.wav");
+
+  Globals.texturesMap = TextureHashMapCreate();
+
+  Globals.currentCaptcha = CaptchaDefault();
 
   LoadAllPopupTextures(&Globals.texturesMap);
+  LoadAllCaptchaTextures(&Globals.texturesMap);
+
+  CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
 
   SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
 }
@@ -51,15 +67,29 @@ void UpdateDrawLoop() {
   ClearBackground(RAYWHITE);
 
   UpdatePopupSpawnTimer();
-  if (!PopupStackIsEmpty(Globals.popupStack)) {
+  if (!PopupStackIsEmpty(Globals.popupStack) &&
+      Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
     PopupStackDraw(Globals.popupStack);
     switch (PopupStackReadInput(Globals.popupStack)) {
     case POPUP_PRESSED_FAILURE:
-      printf("Wrong number!\n");
       PlaySound(Globals.soundLib.incorrect);
+      LoseLife();
       break;
     case POPUP_PRESSED_SUCCESSFULLY:
       PopupStackPop(&Globals.popupStack);
+      break;
+    default: // Idling
+      break;
+    }
+  } else if (Globals.currentCaptcha.type != CAPTCHA_TYPE_NONE) {
+    CaptchaDraw(&Globals.currentCaptcha);
+    switch (CaptchaCheck(&Globals.currentCaptcha)) {
+    case CAPTCHA_PRESSED_FAILURE:
+      CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
+      LoseLife();
+      break;
+    case CAPTCHA_PRESSED_SUCCESSFULLY:
+      CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
       break;
     default: // Idling
       break;
