@@ -4,9 +4,12 @@
 
 #include "Captcha.h"
 #include "PopupStack.h"
+#include "Timer.h"
 
 #define PLAYER_LIVES 3
-#define POPUP_SPAWNRATE 1.5
+#define POPUP_SPAWNRATE 2.0
+#define CAPTCHA_SPAWNRATE 15
+#define MAX_CAPTCHAS_COMPLETED 10
 
 typedef struct {
   Sound incorrect;
@@ -19,30 +22,32 @@ struct {
   int completedCaptchas;
   PopupStack popupStack;
   TextureHashMap texturesMap;
-  float popupSpawnTimer;
+  Timer popupSpawnTimer;
+  Timer captchaSpawnTimer;
   Sounds soundLib;
-
   Captcha currentCaptcha;
 } Globals;
 
-void UpdatePopupSpawnTimer() {
-  Globals.popupSpawnTimer += GetFrameTime();
-  if (Globals.popupSpawnTimer >= POPUP_SPAWNRATE) {
-    Globals.popupSpawnTimer = 0.0f;
-    SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
-  }
+void PopupSpawnTimer() {
+  SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
+}
+
+void CaptchaSpawnTimer() {
+  CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
 }
 
 void LoseLife() {
   --Globals.playerLives;
   if (Globals.playerLives <= 0) {
     // Lose Game
+    TimerEnd(&Globals.captchaSpawnTimer);
   }
 }
 
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack = PopupStackCreate();
+  Globals.completedCaptchas = 0;
 
   InitAudioDevice();
 
@@ -57,37 +62,51 @@ void InitGlobals() {
   LoadAllPopupTextures(&Globals.texturesMap);
   LoadAllCaptchaTextures(&Globals.texturesMap);
 
-  SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
+  Globals.popupSpawnTimer = TimerCreate(POPUP_SPAWNRATE, 1, PopupSpawnTimer);
+  Globals.captchaSpawnTimer =
+      TimerCreate(CAPTCHA_SPAWNRATE, 0, CaptchaSpawnTimer);
+
+  TimerStart(&Globals.popupSpawnTimer);
+  TimerStart(&Globals.captchaSpawnTimer);
 }
 
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 
-  UpdatePopupSpawnTimer();
-  if (!PopupStackIsEmpty(Globals.popupStack) &&
-      Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
+  TimerUpdate(&Globals.captchaSpawnTimer);
+  TimerUpdate(&Globals.popupSpawnTimer);
+
+  if (!PopupStackIsEmpty(Globals.popupStack)) {
     PopupStackDraw(Globals.popupStack);
-    switch (PopupStackReadInput(Globals.popupStack)) {
-    case POPUP_PRESSED_FAILURE:
-      PlaySound(Globals.soundLib.incorrect);
-      LoseLife();
-      break;
-    case POPUP_PRESSED_SUCCESSFULLY:
-      PopupStackPop(&Globals.popupStack);
-      break;
-    default: // Idling
-      break;
+    if (Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
+      switch (PopupStackReadInput(Globals.popupStack)) {
+      case POPUP_PRESSED_FAILURE:
+        PlaySound(Globals.soundLib.incorrect);
+        LoseLife();
+        break;
+      case POPUP_PRESSED_SUCCESSFULLY:
+        PopupStackPop(&Globals.popupStack);
+        break;
+      default: // Idling
+        break;
+      }
     }
-  } else if (Globals.currentCaptcha.type != CAPTCHA_TYPE_NONE) {
+  }
+
+  if (Globals.currentCaptcha.type != CAPTCHA_TYPE_NONE) {
     CaptchaDraw(&Globals.currentCaptcha);
     switch (CaptchaCheck(&Globals.currentCaptcha)) {
     case CAPTCHA_PRESSED_FAILURE:
-      CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
+      Globals.currentCaptcha = CaptchaDefault();
+      TimerStart(&Globals.captchaSpawnTimer);
       LoseLife();
       break;
     case CAPTCHA_PRESSED_SUCCESSFULLY:
-      CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
+      Globals.currentCaptcha = CaptchaDefault();
+      ++Globals.completedCaptchas;
+      if (Globals.completedCaptchas < MAX_CAPTCHAS_COMPLETED)
+        TimerStart(&Globals.captchaSpawnTimer);
       break;
     default: // Idling
       break;
