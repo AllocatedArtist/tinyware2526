@@ -6,17 +6,18 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "TextureHashMap.h"
+
 #define STACK_DEFAULT_CAPACITY 5
 
 #define POPUP_WAITING 2
 #define POPUP_PRESSED_SUCCESSFULLY 1
 #define POPUP_PRESSED_FAILURE 0
 
-typedef struct TextureHashNode {
-  const char *filePath;
-  Texture2D texture;
-  struct TextureHashNode *next;
-} TextureHashNode;
+struct {
+    Texture2D button;
+    Texture2D backing;
+} Elements;
 
 typedef struct {
   int number;

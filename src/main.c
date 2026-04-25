@@ -57,8 +57,6 @@ void InitGlobals() {
   LoadAllPopupTextures(&Globals.texturesMap);
   LoadAllCaptchaTextures(&Globals.texturesMap);
 
-  CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
-
   SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
 }
 
