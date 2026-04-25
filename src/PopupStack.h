@@ -76,6 +76,11 @@ Texture2D TextureHashMapGet(TextureHashMap *hashMap, const char *filePath) {
   return current->next->texture;
 }
 
+struct {
+    Texture2D button;
+    Texture2D backing;
+} Elements;
+
 typedef struct {
   int number;
   Texture2D imageTexture;
@@ -162,11 +167,16 @@ void PopupStackDraw(PopupStack popupStack) {
   imageOffset.x = scale.x * 0.1f;
   imageOffset.y = scale.y * 0.1f;
 
+  Vector2 borderOffset;
+  borderOffset.x = scale.x * 0.012f;
+  borderOffset.y = 16;
+
   for (int i = 0; i < popupStack.headIdx; ++i) {
     Popup popup = popupStack.data[i];
 
-    DrawRectangle(currentPosOffset.x - scale.x * 0.5f,
-                  currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
+    DrawRectangle(currentPosOffset.x - (scale.x * 0.5f) - borderOffset.x,
+                  currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y,
+                  scale.x + borderOffset.x, scale.y + borderOffset.y,
                   DARKGRAY);
 
     float imgWidth = popup.imageTexture.width;
@@ -182,9 +192,12 @@ void PopupStackDraw(PopupStack popupStack) {
                     .height = scale.y},
         (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, GRAY);
 
+    DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 16,
+        currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, GRAY);
+
     const char *text = TextFormat("%d", popup.number);
-    DrawText(text, currentPosOffset.x + scale.x * 0.5 - 24,
-                currentPosOffset.y - scale.y * 0.5f, 24, RED);
+    DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 16,
+                currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, 24, RED);
 
     currentPosOffset.x += imageOffset.x;
     currentPosOffset.y -= imageOffset.y;
@@ -195,9 +208,10 @@ void PopupStackDraw(PopupStack popupStack) {
   float imgWidth = currentPopup.imageTexture.width;
   float imgHeight = currentPopup.imageTexture.height;
 
-  DrawRectangle(currentPosOffset.x - scale.x * 0.5f,
-                     currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
-                     DARKGRAY);
+  DrawRectangle(currentPosOffset.x - (scale.x * 0.5f) - borderOffset.x,
+                currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y,
+                scale.x + 2 * borderOffset.x, scale.y + 2 * borderOffset.y,
+                DARKGRAY);
 
   DrawTexturePro(
       currentPopup.imageTexture,
@@ -208,9 +222,12 @@ void PopupStackDraw(PopupStack popupStack) {
                   .height = scale.y},
       (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, WHITE);
 
+  DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 16,
+      currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, WHITE);
+
   const char *text = TextFormat("%d", currentPopup.number);
-  DrawText(text, currentPosOffset.x + scale.x * 0.5 - 24,
-            currentPosOffset.y - scale.y * 0.5f, 24, RED);
+  DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 16,
+            currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, 24, RED);
 }
 
 void LoadAllPopupTextures(TextureHashMap *hashMap) {
@@ -221,6 +238,9 @@ void LoadAllPopupTextures(TextureHashMap *hashMap) {
     const char *filePath = hashMap->filePaths.paths[i];
     TextureHashMapGet(hashMap, filePath);
   }
+
+  Elements.button = LoadTexture("resources/textures/button.png");
+  Elements.backing = LoadTexture("resources/textures/button.png");
 }
 
 void SpawnRandomPopup(TextureHashMap *hashMap, PopupStack *popupStack) {
