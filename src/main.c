@@ -6,31 +6,51 @@
 #include "Captcha.h"
 
 #define PLAYER_LIVES 3
+#define POPUP_SPAWNRATE 1.5
 
 struct {
   int playerLives;
   int completedCaptchas;
   PopupStack popupStack;
-  Popup currentPopup;
+  TextureHashMap texturesMap;
+  float popupSpawnTimer;
 } Globals;
+
+void UpdatePopupSpawnTimer() {
+  Globals.popupSpawnTimer += GetFrameTime();
+  if (Globals.popupSpawnTimer >= POPUP_SPAWNRATE) {
+    Globals.popupSpawnTimer = 0.0f;
+    SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
+  }
+}
 
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack = PopupStackCreate();
-  Globals.currentPopup = PopupDefault();
+
+  LoadAllPopupTextures(&Globals.texturesMap);
+
+  SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
 }
 
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 
-  DrawTextureRec(
-      Globals.currentPopup.imageTexture,
-      (Rectangle){.x = 0.0f,
-                  .y = 0.0f,
-                  .width = Globals.currentPopup.imageTexture.width,
-                  .height = Globals.currentPopup.imageTexture.height},
-      (Vector2){.x = 0.0f, .y = 0.0f}, WHITE);
+  UpdatePopupSpawnTimer();
+  if (!PopupStackIsEmpty(Globals.popupStack)) {
+    PopupStackDraw(Globals.popupStack);
+    switch (PopupStackReadInput(Globals.popupStack)) {
+    case POPUP_PRESSED_FAILURE:
+      printf("Wrong number!\n");
+      break;
+    case POPUP_PRESSED_SUCCESSFULLY:
+      PopupStackPop(&Globals.popupStack);
+      break;
+    default: // Idling
+      break;
+    }
+  }
 
   DrawText("bruh ts is peak", 20, 20, 40, DARKGRAY);
 
@@ -40,21 +60,13 @@ void UpdateDrawLoop() {
 int main() {
   InitWindow(1000, 1000, "Window");
 
-  PopupStack popups = PopupStackCreate();
-  PopupStackPush(&popups, "resources/textures/test1.jpg", 69);
-  PopupStackPush(&popups, "resources/textures/test2.jpg", 420);
-  PopupStackPush(&popups, "resources/textures/test3.jpg", 21);
+  InitGlobals();
 
   printf("Started Game\n");
-
-  Globals.currentPopup = PopupStackPop(&popups);
 
   while (!WindowShouldClose()) {
     UpdateDrawLoop();
   }
-
-  // This will never be called in the web build
-  PopupStackDelete(&popups);
 
   return 0;
 }
