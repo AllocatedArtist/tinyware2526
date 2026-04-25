@@ -15,23 +15,28 @@ void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack = PopupStackCreate();
 
-  PopupStackPush(&Globals.popupStack, "resources/textures/test1.png", 69);
-  PopupStackPush(&Globals.popupStack, "resources/textures/test2.png", 420);
-  PopupStackPush(&Globals.popupStack, "resources/textures/test3.png", 21);
+  PopupStackPush(&Globals.popupStack, "resources/textures/test1.png", 6);
+  PopupStackPush(&Globals.popupStack, "resources/textures/test2.png", 4);
+  PopupStackPush(&Globals.popupStack, "resources/textures/test3.png", 2);
 }
 
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 
-  Popup currentPopup = PopupStackPeek(Globals.popupStack);
-
-  DrawTextureRec(currentPopup.imageTexture,
-                 (Rectangle){.x = 0.0f,
-                             .y = 0.0f,
-                             .width = currentPopup.imageTexture.width,
-                             .height = currentPopup.imageTexture.height},
-                 (Vector2){.x = 100.0f, .y = 100.0f}, WHITE);
+  if (!PopupStackIsEmpty(Globals.popupStack)) {
+    switch (PopupStackReadInput(Globals.popupStack)) {
+    case POPUP_PRESSED_FAILURE:
+      printf("Wrong number!\n");
+      break;
+    case POPUP_PRESSED_SUCCESSFULLY:
+      printf("Right number!\n");
+      break;
+    default: // Idling
+      break;
+    }
+    PopupStackDraw(Globals.popupStack);
+  }
 
   EndDrawing();
 }

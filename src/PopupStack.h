@@ -8,6 +8,10 @@
 
 #define STACK_DEFAULT_CAPACITY 5
 
+#define POPUP_WAITING 2
+#define POPUP_PRESSED_SUCCESSFULLY 1
+#define POPUP_PRESSED_FAILURE 0
+
 typedef struct {
   const char *imagePath;
   int number;
@@ -72,6 +76,75 @@ void PopupStackDelete(PopupStack *popupStack) {
 
   popupStack->headIdx = -1;
   popupStack->capacity = 0;
+}
+
+int PopupStackReadInput(PopupStack popupStack) {
+  Popup currentPopup = PopupStackPeek(popupStack);
+
+  if (IsKeyPressed(KEY_ZERO + currentPopup.number)) {
+    return POPUP_PRESSED_SUCCESSFULLY;
+  }
+
+  if (GetKeyPressed() == 0) {
+    return POPUP_WAITING;
+  }
+
+  return POPUP_PRESSED_FAILURE;
+}
+
+void PopupStackDraw(PopupStack popupStack) {
+  Vector2 startPos;
+  startPos.x = GetScreenWidth() * 0.5f;
+  startPos.y = GetScreenHeight() * 0.5f;
+
+  Vector2 currentPosOffset = startPos;
+
+  Vector2 scale = {300.0f, 500.0f};
+  Vector2 imageOffset;
+  imageOffset.x = scale.x * 0.1f;
+  imageOffset.y = scale.y * 0.1f;
+
+  for (int i = 0; i < popupStack.headIdx; ++i) {
+    Popup popup = popupStack.data[i];
+
+    DrawRectangleLines(currentPosOffset.x - scale.x * 0.5f,
+                       currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
+                       GREEN);
+
+    float imgWidth = popup.imageTexture.width;
+    float imgHeight = popup.imageTexture.height;
+
+    DrawTexturePro(
+        popup.imageTexture,
+        (Rectangle){
+            .x = 0.0f, .y = 0.0f, .width = imgWidth, .height = imgHeight},
+        (Rectangle){.x = currentPosOffset.x,
+                    .y = currentPosOffset.y,
+                    .width = scale.x,
+                    .height = scale.y},
+        (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, GRAY);
+
+    currentPosOffset.x += imageOffset.x;
+    currentPosOffset.y -= imageOffset.y;
+  }
+
+  Popup currentPopup = PopupStackPeek(popupStack);
+
+  float imgWidth = currentPopup.imageTexture.width;
+  float imgHeight = currentPopup.imageTexture.height;
+
+  DrawRectangleLines(currentPosOffset.x - scale.x * 0.5f,
+                     currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
+                     GREEN);
+
+  DrawTexturePro(
+      currentPopup.imageTexture,
+      (Rectangle){.x = 0.0f, .y = 0.0f, .width = imgWidth, .height = imgHeight},
+      (Rectangle){.x = currentPosOffset.x,
+                  .y = currentPosOffset.y,
+                  .width = scale.x,
+                  .height = scale.y},
+      (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, WHITE);
 }
 
 #endif
