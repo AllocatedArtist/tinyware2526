@@ -5,37 +5,49 @@
 #include "PopupStack.h"
 
 #define PLAYER_LIVES 3
+#define POPUP_SPAWNRATE 1.5
 
 struct {
   int playerLives;
   PopupStack popupStack;
+  TextureHashMap texturesMap;
+  float popupSpawnTimer;
 } Globals;
+
+void UpdatePopupSpawnTimer() {
+  Globals.popupSpawnTimer += GetFrameTime();
+  if (Globals.popupSpawnTimer >= POPUP_SPAWNRATE) {
+    Globals.popupSpawnTimer = 0.0f;
+    SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
+  }
+}
 
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack = PopupStackCreate();
 
-  PopupStackPush(&Globals.popupStack, "resources/textures/test1.png", 6);
-  PopupStackPush(&Globals.popupStack, "resources/textures/test2.png", 4);
-  PopupStackPush(&Globals.popupStack, "resources/textures/test3.png", 2);
+  LoadAllPopupTextures(&Globals.texturesMap);
+
+  SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
 }
 
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 
+  UpdatePopupSpawnTimer();
   if (!PopupStackIsEmpty(Globals.popupStack)) {
+    PopupStackDraw(Globals.popupStack);
     switch (PopupStackReadInput(Globals.popupStack)) {
     case POPUP_PRESSED_FAILURE:
       printf("Wrong number!\n");
       break;
     case POPUP_PRESSED_SUCCESSFULLY:
-      printf("Right number!\n");
+      PopupStackPop(&Globals.popupStack);
       break;
     default: // Idling
       break;
     }
-    PopupStackDraw(Globals.popupStack);
   }
 
   EndDrawing();
@@ -51,9 +63,6 @@ int main() {
   while (!WindowShouldClose()) {
     UpdateDrawLoop();
   }
-
-  // This will never be called in the web build
-  PopupStackDelete(&Globals.popupStack);
 
   return 0;
 }
