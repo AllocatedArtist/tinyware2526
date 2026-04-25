@@ -122,7 +122,7 @@ void PopupStackDraw(PopupStack popupStack) {
 
     const char *text = TextFormat("%d", popup.number);
     DrawText(text, currentPosOffset.x + scale.x * 0.5 - 24,
-                currentPosOffset.y - scale.y * 0.5f, 24, RED);
+             currentPosOffset.y - scale.y * 0.5f, 24, RED);
 
     currentPosOffset.x += imageOffset.x;
     currentPosOffset.y -= imageOffset.y;
@@ -134,8 +134,8 @@ void PopupStackDraw(PopupStack popupStack) {
   float imgHeight = currentPopup.imageTexture.height;
 
   DrawRectangle(currentPosOffset.x - scale.x * 0.5f,
-                     currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
-                     DARKGRAY);
+                currentPosOffset.y - scale.y * 0.5f, scale.x, scale.y,
+                DARKGRAY);
 
   DrawTexturePro(
       currentPopup.imageTexture,
@@ -148,11 +148,10 @@ void PopupStackDraw(PopupStack popupStack) {
 
   const char *text = TextFormat("%d", currentPopup.number);
   DrawText(text, currentPosOffset.x + scale.x * 0.5 - 24,
-            currentPosOffset.y - scale.y * 0.5f, 24, RED);
+           currentPosOffset.y - scale.y * 0.5f, 24, RED);
 }
 
 void LoadAllPopupTextures(TextureHashMap *hashMap) {
-  *hashMap = TextureHashMapCreate();
   hashMap->popupPaths = LoadDirectoryFiles("resources/textures/popups");
 
   assert(hashMap->popupPaths.count > 0 && "Need at least one popup texture!");
