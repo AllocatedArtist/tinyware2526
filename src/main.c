@@ -8,10 +8,12 @@
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 1.5
 
-typedef struct {
-  Sound incorrect;
-  Sound captchaDone;
-  Sound vine;
+struct {
+    Music backgroundMusic;
+    Sound incorrect;
+    Sound captchaSpawn;
+    Sound captchaDone;
+    Sound vine;
 } Sounds;
 
 struct {
@@ -20,8 +22,6 @@ struct {
   PopupStack popupStack;
   TextureHashMap texturesMap;
   float popupSpawnTimer;
-  Sounds soundLib;
-
   Captcha currentCaptcha;
 } Globals;
 
@@ -46,9 +46,11 @@ void InitGlobals() {
 
   InitAudioDevice();
 
-  Globals.soundLib.incorrect = LoadSound("resources/audio/Laugh.wav");
-  Globals.soundLib.captchaDone = LoadSound("resources/audio/Laugh.wav");
-  Globals.soundLib.vine = LoadSound("resources/audio/Laugh.wav");
+  Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
+  Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+  Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
+  Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
+  Sounds.vine = LoadSound("resources/audio/vineboom.pm3");
 
   Globals.texturesMap = TextureHashMapCreate();
 
@@ -70,7 +72,7 @@ void UpdateDrawLoop() {
     PopupStackDraw(Globals.popupStack);
     switch (PopupStackReadInput(Globals.popupStack)) {
     case POPUP_PRESSED_FAILURE:
-      PlaySound(Globals.soundLib.incorrect);
+      PlaySound(Sounds.incorrect);
       LoseLife();
       break;
     case POPUP_PRESSED_SUCCESSFULLY:
@@ -104,9 +106,16 @@ int main() {
 
   printf("Started Game\n");
 
+  PlayMusicStream(Sounds.backgroundMusic);
+  SetMusicVolume(Sounds.backgroundMusic, 1.0f);
+
   while (!WindowShouldClose()) {
     UpdateDrawLoop();
   }
+
+  UnloadMusicStream(music);
+
+  CloseAudioDevice();
 
   return 0;
 }
