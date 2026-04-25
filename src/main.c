@@ -33,6 +33,13 @@ void UpdatePopupSpawnTimer() {
   }
 }
 
+void LoseLife() {
+  --Globals.playerLives;
+  if (Globals.playerLives <= 0) {
+    // Lose Game
+  }
+}
+
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack = PopupStackCreate();
@@ -66,6 +73,7 @@ void UpdateDrawLoop() {
     switch (PopupStackReadInput(Globals.popupStack)) {
     case POPUP_PRESSED_FAILURE:
       PlaySound(Globals.soundLib.incorrect);
+      LoseLife();
       break;
     case POPUP_PRESSED_SUCCESSFULLY:
       PopupStackPop(&Globals.popupStack);
@@ -78,6 +86,7 @@ void UpdateDrawLoop() {
     switch (CaptchaCheck(&Globals.currentCaptcha)) {
     case CAPTCHA_PRESSED_FAILURE:
       CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
+      LoseLife();
       break;
     case CAPTCHA_PRESSED_SUCCESSFULLY:
       CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
