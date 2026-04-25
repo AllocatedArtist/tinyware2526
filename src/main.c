@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 
-#include "PopupStack.h"
 #include "Captcha.h"
+#include "PopupStack.h"
 
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 1.5
@@ -29,6 +29,7 @@ void InitGlobals() {
   Globals.popupStack = PopupStackCreate();
 
   LoadAllPopupTextures(&Globals.texturesMap);
+  LoadAllCaptchaTextures(&Globals.texturesMap);
 
   SpawnRandomPopup(&Globals.texturesMap, &Globals.popupStack);
 }
