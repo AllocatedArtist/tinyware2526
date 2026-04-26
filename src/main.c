@@ -11,7 +11,6 @@
 struct {
     Music backgroundMusic;
     Sound incorrect;
-    Sound adSpawn;
     Sound adPop;
     Sound captchaSpawn;
     Sound captchaDone;
@@ -50,7 +49,6 @@ void InitGlobals() {
 
   Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
   Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
-  Sounds.adSpawn = LoadSound("resources/audio/adpop.mp3");
   Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
   Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
   Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
