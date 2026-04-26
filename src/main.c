@@ -11,7 +11,7 @@
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 2.0
 #define CAPTCHA_SPAWNRATE 15.0
-#define MAX_CAPTCHAS_COMPLETED 15
+#define MAX_CAPTCHAS_COMPLETED 5
 #define MAX_ADS 10
 
 struct {
@@ -22,6 +22,13 @@ struct {
   Sound captchaDone;
   Sound vine;
 } Sounds;
+
+struct {
+    Texture2D life;
+    Texture2D usedLife;
+    Texture2D progress;
+    Texture2D doneProgress;
+} LP;
 
 struct {
   int playerLives;
@@ -55,6 +62,24 @@ void LoseLife() {
   }
 }
 
+void DrawLives() {
+    for (int i = 0; i < PLAYER_LIVES - Globals.playerLives; i++) {
+        DrawTexture(LP.usedLife, GetScreenWidth() - (64 * (PLAYER_LIVES - i)), 0, WHITE);
+    }
+    for (int i = Globals.playerLives; i > 0; i--) {
+        DrawTexture(LP.life, GetScreenWidth() - (64 * i), 0, WHITE);
+    }
+}
+
+void DrawProgress() {
+    for (int i = 0; i < Globals.completedCaptchas; i++) {
+        DrawTexture(LP.doneProgress, 64 * i, 0, WHITE);
+    }
+    for (int i = Globals.completedCaptchas; i < MAX_CAPTCHAS_COMPLETED; i++) {
+        DrawTexture(LP.progress, 64 * i, 0, WHITE);
+    }
+}
+
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack.headIdx = -1;
@@ -69,6 +94,11 @@ void InitGlobals() {
     Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
     Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
     Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+
+    LP.life = LoadTexture("resources/textures/lives.png");
+    LP.usedLife = LoadTexture("resources/textures/usedLife.png");
+    LP.progress = LoadTexture("resources/textures/progress.png");
+    LP.doneProgress = LoadTexture("resources/textures/progressDone.png");
 
     PlayMusicStream(Sounds.backgroundMusic);
     SetMusicVolume(Sounds.backgroundMusic, 1.0f);
@@ -231,6 +261,9 @@ void UpdateDrawLoop() {
       break;
     }
   }
+
+  DrawLives();
+  DrawProgress();
 
   EndDrawing();
 }
