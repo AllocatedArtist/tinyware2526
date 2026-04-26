@@ -13,13 +13,12 @@
 #define MAX_ADS
 
 struct {
-  Music backgroundMusic;
-  Sound incorrect;
-  Sound adSpawn;
-  Sound adPop;
-  Sound captchaSpawn;
-  Sound captchaDone;
-  Sound vine;
+    Music backgroundMusic;
+    Sound incorrect;
+    Sound adPop;
+    Sound captchaSpawn;
+    Sound captchaDone;
+    Sound vine;
 } Sounds;
 
 struct {
@@ -58,13 +57,12 @@ void InitGlobals() {
     Globals.popupStack = PopupStackCreate();
     InitAudioDevice();
 
-    Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
-    Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
-    Sounds.adSpawn = LoadSound("resources/audio/adpop.mp3");
-    Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
-    Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
-    Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
-    Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+  Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
+  Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+  Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
+  Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
+  Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
+  Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
 
     PlayMusicStream(Sounds.backgroundMusic);
     SetMusicVolume(Sounds.backgroundMusic, 1.0f);
