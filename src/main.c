@@ -11,6 +11,8 @@
 struct {
     Music backgroundMusic;
     Sound incorrect;
+    Sound adSpawn;
+    Sound adPop;
     Sound captchaSpawn;
     Sound captchaDone;
     Sound vine;
@@ -48,9 +50,14 @@ void InitGlobals() {
 
   Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
   Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+  Sounds.adSpawn = LoadSound("resources/audio/adpop.mp3");
+  Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
   Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
   Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
-  Sounds.vine = LoadSound("resources/audio/vineboom.pm3");
+  Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+
+  PlayMusicStream(Sounds.backgroundMusic);
+  SetMusicVolume(Sounds.backgroundMusic, 1.0f);
 
   Globals.texturesMap = TextureHashMapCreate();
 
@@ -67,6 +74,7 @@ void UpdateDrawLoop() {
   ClearBackground(RAYWHITE);
 
   UpdatePopupSpawnTimer();
+  UpdateMusicStream(Sounds.backgroundMusic);
   if (!PopupStackIsEmpty(Globals.popupStack) &&
       Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
     PopupStackDraw(Globals.popupStack);
@@ -76,6 +84,7 @@ void UpdateDrawLoop() {
       LoseLife();
       break;
     case POPUP_PRESSED_SUCCESSFULLY:
+      PlaySound(Sounds.adPop);
       PopupStackPop(&Globals.popupStack);
       break;
     default: // Idling
@@ -85,10 +94,12 @@ void UpdateDrawLoop() {
     CaptchaDraw(&Globals.currentCaptcha);
     switch (CaptchaCheck(&Globals.currentCaptcha)) {
     case CAPTCHA_PRESSED_FAILURE:
+      PlaySound(Sounds.incorrect);
       CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
       LoseLife();
       break;
     case CAPTCHA_PRESSED_SUCCESSFULLY:
+      PlaySound(Sounds.captchaDone);
       CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
       break;
     default: // Idling
@@ -106,16 +117,9 @@ int main() {
 
   printf("Started Game\n");
 
-  PlayMusicStream(Sounds.backgroundMusic);
-  SetMusicVolume(Sounds.backgroundMusic, 1.0f);
-
   while (!WindowShouldClose()) {
     UpdateDrawLoop();
   }
-
-  UnloadMusicStream(music);
-
-  CloseAudioDevice();
 
   return 0;
 }
