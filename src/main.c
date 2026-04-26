@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include <emscripten/emscripten.h>
+
 #include "Captcha.h"
 #include "PopupStack.h"
 #include "Timer.h"
@@ -241,9 +243,8 @@ int main() {
 
   printf("Started Game\n");
 
-  while (!WindowShouldClose()) {
-    UpdateDrawLoop();
-  }
+  emscripten_set_main_loop(UpdateDrawLoop, 0, 1);
+  SetTargetFPS(60);
 
   return 0;
 }
