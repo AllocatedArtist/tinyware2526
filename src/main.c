@@ -1,8 +1,11 @@
 #include <raylib.h>
 
+#include <math.h>
 #include <stdio.h>
 
+#ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
+#endif
 
 #include "Captcha.h"
 #include "PopupStack.h"
@@ -14,6 +17,11 @@
 #define MAX_CAPTCHAS_COMPLETED 5
 #define MAX_ADS 10
 
+#define FONT_SIZE_BASE 128
+#define FONT_SIZE_TITLE 96
+#define FONT_SIZE_MESSAGE 48
+#define FONT_SIZE_SMALL 36
+
 struct {
   Music backgroundMusic;
   Sound incorrect;
@@ -24,10 +32,10 @@ struct {
 } Sounds;
 
 struct {
-    Texture2D life;
-    Texture2D usedLife;
-    Texture2D progress;
-    Texture2D doneProgress;
+  Texture2D life;
+  Texture2D usedLife;
+  Texture2D progress;
+  Texture2D doneProgress;
 } LP;
 
 struct {
@@ -39,6 +47,11 @@ struct {
   Timer captchaSpawnTimer;
   Captcha currentCaptcha;
   int initialLoad;
+  Font mainFont;
+
+  Model cat;
+  Camera3D camera;
+  Color backgroundColor;
 } Globals;
 
 void PopupSpawnTimer() {
@@ -63,21 +76,22 @@ void LoseLife() {
 }
 
 void DrawLives() {
-    for (int i = 0; i < PLAYER_LIVES - Globals.playerLives; i++) {
-        DrawTexture(LP.usedLife, GetScreenWidth() - (64 * (PLAYER_LIVES - i)), 0, WHITE);
-    }
-    for (int i = Globals.playerLives; i > 0; i--) {
-        DrawTexture(LP.life, GetScreenWidth() - (64 * i), 0, WHITE);
-    }
+  for (int i = 0; i < PLAYER_LIVES - Globals.playerLives; i++) {
+    DrawTexture(LP.usedLife, GetScreenWidth() - (64 * (PLAYER_LIVES - i)), 0,
+                WHITE);
+  }
+  for (int i = Globals.playerLives; i > 0; i--) {
+    DrawTexture(LP.life, GetScreenWidth() - (64 * i), 0, WHITE);
+  }
 }
 
 void DrawProgress() {
-    for (int i = 0; i < Globals.completedCaptchas; i++) {
-        DrawTexture(LP.doneProgress, 64 * i, 0, WHITE);
-    }
-    for (int i = Globals.completedCaptchas; i < MAX_CAPTCHAS_COMPLETED; i++) {
-        DrawTexture(LP.progress, 64 * i, 0, WHITE);
-    }
+  for (int i = 0; i < Globals.completedCaptchas; i++) {
+    DrawTexture(LP.doneProgress, 64 * i, 0, WHITE);
+  }
+  for (int i = Globals.completedCaptchas; i < MAX_CAPTCHAS_COMPLETED; i++) {
+    DrawTexture(LP.progress, 64 * i, 0, WHITE);
+  }
 }
 
 void InitGlobals() {
@@ -90,10 +104,15 @@ void InitGlobals() {
 
     Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
     Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+
     Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
     Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
     Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
     Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+
+    Globals.mainFont =
+        LoadFontEx("resources/fonts/Changa_One/ChangaOne-Regular.ttf",
+                   FONT_SIZE_BASE, 0, 0);
 
     LP.life = LoadTexture("resources/textures/lives.png");
     LP.usedLife = LoadTexture("resources/textures/usedLife.png");
@@ -107,7 +126,22 @@ void InitGlobals() {
 
     LoadAllPopupTextures(&Globals.texturesMap);
     LoadAllCaptchaTextures(&Globals.texturesMap);
+
+    Globals.cat = LoadModel("resources/models/cat.glb");
   }
+
+  Globals.camera = (Camera3D){0};
+  Globals.camera.position.x = 10;
+  Globals.camera.position.y = 10;
+  Globals.camera.position.z = 10;
+  Globals.camera.target.x = 0;
+  Globals.camera.target.y = 0;
+  Globals.camera.target.z = 0;
+  Globals.camera.up.x = 0;
+  Globals.camera.up.y = 1;
+  Globals.camera.up.z = 0;
+  Globals.camera.fovy = 45.0f;
+  Globals.camera.projection = CAMERA_PERSPECTIVE;
 
   Globals.completedCaptchas = 0;
 
@@ -129,32 +163,39 @@ void GameOverScreen() {
 
   const char *GAME_OVER = "Game Over";
 
-  int fontSize = 48;
-  size_t textLengthHalf = MeasureText(GAME_OVER, fontSize) * 0.5f;
+  int fontSize = FONT_SIZE_TITLE;
+  size_t textLengthHalf =
+      MeasureTextEx(Globals.mainFont, GAME_OVER, fontSize, 0).x * 0.5f;
   currentPosOffset.x -= textLengthHalf;
-  DrawText(GAME_OVER, currentPosOffset.x, currentPosOffset.y, fontSize, RED);
+  DrawTextEx(Globals.mainFont, GAME_OVER,
+             (Vector2){currentPosOffset.x, currentPosOffset.y}, fontSize, 0,
+             RED);
 
   const char *MSG = "YOUR PHONE EXPLODED FROM THE SHEER AMOUNT OF ADS";
-  fontSize = 24;
+  fontSize = FONT_SIZE_MESSAGE;
 
   currentPosOffset =
       (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
 
-  textLengthHalf = MeasureText(MSG, fontSize) * 0.5f;
+  textLengthHalf = MeasureTextEx(Globals.mainFont, MSG, fontSize, 0).x * 0.5f;
   currentPosOffset.x -= textLengthHalf;
-  currentPosOffset.y += 50;
-  DrawText(MSG, currentPosOffset.x, currentPosOffset.y, fontSize, GRAY);
+  currentPosOffset.y += 50 + fontSize;
+  DrawTextEx(Globals.mainFont, MSG,
+             (Vector2){currentPosOffset.x, currentPosOffset.y}, fontSize, 0,
+             GRAY);
 
   const char *MSG2 = "CLICK SPACE TO PLAY AGAIN";
-  fontSize = 24;
+  fontSize = FONT_SIZE_MESSAGE;
 
   currentPosOffset =
       (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
 
-  textLengthHalf = MeasureText(MSG2, fontSize) * 0.5f;
+  textLengthHalf = MeasureTextEx(Globals.mainFont, MSG2, fontSize, 0).x * 0.5f;
   currentPosOffset.x -= textLengthHalf;
-  currentPosOffset.y += 100;
-  DrawText(MSG2, currentPosOffset.x, currentPosOffset.y, fontSize, DARKGRAY);
+  currentPosOffset.y += 100 + fontSize;
+  DrawTextEx(Globals.mainFont, MSG2,
+             (Vector2){currentPosOffset.x, currentPosOffset.y}, fontSize, 0,
+             DARKGRAY);
 
   if (IsKeyPressed(KEY_SPACE)) {
     InitGlobals();
@@ -167,33 +208,40 @@ void WinScreen() {
 
   const char *GAME_OVER = "ADBLOCKER RESTORED! YOU WIN!";
 
-  int fontSize = 48;
-  size_t textLengthHalf = MeasureText(GAME_OVER, fontSize) * 0.5f;
+  int fontSize = FONT_SIZE_TITLE;
+  size_t textLengthHalf =
+      MeasureTextEx(Globals.mainFont, GAME_OVER, fontSize, 0).x * 0.5f;
   currentPosOffset.x -= textLengthHalf;
-  DrawText(GAME_OVER, currentPosOffset.x, currentPosOffset.y, fontSize, RED);
+  DrawTextEx(Globals.mainFont, GAME_OVER,
+             (Vector2){currentPosOffset.x, currentPosOffset.y}, fontSize, 0,
+             RED);
 
   const char *MSG =
       "PLEASE DON'T TRUST PEOPLE ON REDDIT WHEN THEY SAY 100\% GUARANTEED";
-  fontSize = 24;
+  fontSize = FONT_SIZE_MESSAGE;
 
   currentPosOffset =
       (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
 
-  textLengthHalf = MeasureText(MSG, fontSize) * 0.5f;
+  textLengthHalf = MeasureTextEx(Globals.mainFont, MSG, fontSize, 0).x * 0.5f;
   currentPosOffset.x -= textLengthHalf;
-  currentPosOffset.y += 50;
-  DrawText(MSG, currentPosOffset.x, currentPosOffset.y, fontSize, GRAY);
+  currentPosOffset.y += 50 + fontSize;
+  DrawTextEx(Globals.mainFont, MSG,
+             (Vector2){currentPosOffset.x, currentPosOffset.y}, fontSize, 0,
+             GRAY);
 
   const char *MSG2 = "CLICK SPACE TO PLAY AGAIN";
-  fontSize = 24;
+  fontSize = FONT_SIZE_MESSAGE;
 
   currentPosOffset =
       (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
 
-  textLengthHalf = MeasureText(MSG2, fontSize) * 0.5f;
+  textLengthHalf = MeasureTextEx(Globals.mainFont, MSG2, fontSize, 0).x * 0.5f;
   currentPosOffset.x -= textLengthHalf;
-  currentPosOffset.y += 100;
-  DrawText(MSG2, currentPosOffset.x, currentPosOffset.y, fontSize, DARKGRAY);
+  currentPosOffset.y += 100 + fontSize;
+  DrawTextEx(Globals.mainFont, MSG2,
+             (Vector2){currentPosOffset.x, currentPosOffset.y}, fontSize, 0,
+             DARKGRAY);
 
   if (IsKeyPressed(KEY_SPACE)) {
     InitGlobals();
@@ -202,7 +250,14 @@ void WinScreen() {
 
 void UpdateDrawLoop() {
   BeginDrawing();
-  ClearBackground(RAYWHITE);
+  Globals.backgroundColor = ColorLerp(YELLOW, DARKGREEN, sinf(GetTime()));
+  ClearBackground(ColorBrightness(Globals.backgroundColor, 0.5));
+
+  UpdateCamera(&Globals.camera, CAMERA_ORBITAL);
+  BeginMode3D(Globals.camera);
+  DrawModel(Globals.cat, (Vector3){0, 0, 0}, 10.0f, WHITE);
+  DrawGrid(10, 1.0f);
+  EndMode3D();
 
   if (Globals.playerLives <= 0) {
     GameOverScreen();
@@ -214,6 +269,7 @@ void UpdateDrawLoop() {
     return;
   } else {
     if (Globals.popupStack.headIdx + 1 >= MAX_ADS) {
+      PlaySound(Sounds.incorrect);
       LoseGame();
     }
   }
@@ -223,7 +279,7 @@ void UpdateDrawLoop() {
 
   UpdateMusicStream(Sounds.backgroundMusic);
   if (!PopupStackIsEmpty(Globals.popupStack)) {
-    PopupStackDraw(Globals.popupStack);
+    PopupStackDraw(Globals.popupStack, Globals.mainFont);
     if (Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
       switch (PopupStackReadInput(Globals.popupStack)) {
       case POPUP_PRESSED_FAILURE:
@@ -241,7 +297,7 @@ void UpdateDrawLoop() {
   }
 
   if (Globals.currentCaptcha.type != CAPTCHA_TYPE_NONE) {
-    CaptchaDraw(&Globals.currentCaptcha);
+    CaptchaDraw(&Globals.currentCaptcha, Globals.mainFont);
     switch (CaptchaCheck(&Globals.currentCaptcha)) {
     case CAPTCHA_PRESSED_FAILURE:
       PlaySound(Sounds.incorrect);
@@ -270,14 +326,18 @@ void UpdateDrawLoop() {
 
 int main() {
   InitWindow(1000, 1000, "Window");
+  SetTargetFPS(60);
 
   Globals.initialLoad = 1;
   InitGlobals();
 
-  printf("Started Game\n");
-
+#ifdef PLATFORM_WEB
   emscripten_set_main_loop(UpdateDrawLoop, 0, 1);
-  SetTargetFPS(60);
+#else
+  while (!WindowShouldClose()) {
+    UpdateDrawLoop();
+  }
+#endif
 
   return 0;
 }

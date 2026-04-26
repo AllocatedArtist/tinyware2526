@@ -15,6 +15,9 @@
 #define CAPTCHA_PRESSED_SUCCESSFULLY 1
 #define CAPTCHA_PRESSED_FAILURE 0
 
+#define FONT_SIZE_CAPTCHA_TITLE 48
+#define FONT_SIZE_CAPTCHA_MATH 48
+
 typedef enum {
   CAPTCHA_TYPE_NONE,
   CAPTCHA_TYPE_CAR,
@@ -149,17 +152,17 @@ void CaptchaCreateMath(Captcha *currentCaptcha) {
   currentCaptcha->type = CAPTCHA_TYPE_MATH;
 }
 
-void CaptchaTextDraw(const char *captchaText) {
+void CaptchaTextDraw(const char *captchaText, Font font) {
   Vector2 currentPosOffset = {GetScreenWidth() * 0.5f, GetScreenHeight() - 100};
 
-  int fontSize = 48;
-  size_t textLengthHalf = MeasureText(captchaText, fontSize) * 0.5f;
+  int fontSize = FONT_SIZE_CAPTCHA_TITLE;
+  size_t textLengthHalf =
+      MeasureTextEx(font, captchaText, fontSize, 0).x * 0.5f;
   currentPosOffset.x -= textLengthHalf;
-  DrawText(captchaText, currentPosOffset.x, currentPosOffset.y, fontSize,
-           BLACK);
+  DrawTextEx(font, captchaText, currentPosOffset, fontSize, 0, BLACK);
 }
 
-void CaptchaDrawMath(Captcha *currentCaptcha) {
+void CaptchaDrawMath(Captcha *currentCaptcha, Font font) {
   MathProblem mathProblem = currentCaptcha->data.mathProblem;
 
   Vector2 centerPos = {};
@@ -176,30 +179,30 @@ void CaptchaDrawMath(Captcha *currentCaptcha) {
 
   Vector2 textPos = centerPos;
 
-  int fontSize = 24;
+  int fontSize = FONT_SIZE_CAPTCHA_MATH;
 
   if (mathProblem.operationType == MATH_OP_ADD) {
     const char *text =
         TextFormat("%d + %d = ?", mathProblem.firstNum, mathProblem.secondNum);
 
-    size_t textLengthHalf = MeasureText(text, fontSize) * 0.5f;
+    size_t textLengthHalf = MeasureTextEx(font, text, fontSize, 0).x * 0.5f;
     textPos.x -= textLengthHalf;
 
-    DrawText(text, textPos.x, textPos.y, fontSize, WHITE);
+    DrawTextEx(font, text, (Vector2){textPos.x, textPos.y}, fontSize, 0, WHITE);
   } else {
     const char *text =
         TextFormat("%d - %d = ?", mathProblem.firstNum, mathProblem.secondNum);
 
-    size_t textLengthHalf = MeasureText(text, fontSize) * 0.5f;
+    size_t textLengthHalf = MeasureTextEx(font, text, fontSize, 0).x * 0.5f;
     textPos.x -= textLengthHalf;
 
-    DrawText(text, textPos.x, textPos.y, fontSize, WHITE);
+    DrawTextEx(font, text, (Vector2){textPos.x, textPos.y}, fontSize, 0, WHITE);
   }
 
-  CaptchaTextDraw("Solve the math problem.");
+  CaptchaTextDraw("Solve the math problem.", font);
 }
 
-void CaptchaDrawCar(Captcha *currentCaptcha) {
+void CaptchaDrawCar(Captcha *currentCaptcha, Font font) {
   Texture2D carTexture = currentCaptcha->data.imageTexture;
   float imgWidth = carTexture.width;
   float imgHeight = carTexture.height;
@@ -220,7 +223,7 @@ void CaptchaDrawCar(Captcha *currentCaptcha) {
                   .height = scale.y},
       (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, WHITE);
 
-  CaptchaTextDraw("Distance between cars?");
+  CaptchaTextDraw("Distance between cars?", font);
 }
 
 void CaptchaCreateRandom(TextureHashMap *hashMap, Captcha *currentCaptcha) {
@@ -231,15 +234,15 @@ void CaptchaCreateRandom(TextureHashMap *hashMap, Captcha *currentCaptcha) {
   }
 }
 
-void CaptchaDraw(Captcha *currentCaptcha) {
+void CaptchaDraw(Captcha *currentCaptcha, Font font) {
   assert(currentCaptcha != NULL && "Captcha is NULL");
   if (currentCaptcha->type == CAPTCHA_TYPE_NONE)
     return;
   if (currentCaptcha->type == CAPTCHA_TYPE_MATH) {
-    CaptchaDrawMath(currentCaptcha);
+    CaptchaDrawMath(currentCaptcha, font);
     return;
   }
-  CaptchaDrawCar(currentCaptcha);
+  CaptchaDrawCar(currentCaptcha, font);
 }
 
 #endif

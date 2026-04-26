@@ -14,6 +14,8 @@
 #define POPUP_PRESSED_SUCCESSFULLY 1
 #define POPUP_PRESSED_FAILURE 0
 
+#define FONT_SIZE_POPUP_NUMBER 36
+
 struct {
   Texture2D button;
   Texture2D backing;
@@ -86,20 +88,20 @@ int PopupStackReadInput(PopupStack popupStack) {
     return POPUP_PRESSED_SUCCESSFULLY;
   }
 
-  if (GetKeyPressed() == 0) {
+  int keyPressed = GetKeyPressed();
+  if (keyPressed == 0 || !(keyPressed >= KEY_ZERO && keyPressed <= KEY_NINE)) {
     return POPUP_WAITING;
   }
 
   return POPUP_PRESSED_FAILURE;
 }
 
-void PopupStackDraw(PopupStack popupStack) {
+void PopupStackDraw(PopupStack popupStack, Font font) {
   Vector2 startPos;
   startPos.x = GetScreenWidth() * 0.5f;
   startPos.y = GetScreenHeight() * 0.5f;
 
   Vector2 currentPosOffset = startPos;
-
   Vector2 scale = {400.0f, 500.0f};
   Vector2 imageOffset;
   imageOffset.x = scale.x * 0.05f;
@@ -143,9 +145,11 @@ void PopupStackDraw(PopupStack popupStack) {
 
     // Text for number
     const char *text = TextFormat("%d", popup.number);
-    DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 22,
-             currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24,
-             RED);
+    DrawTextEx(
+        font, text,
+        (Vector2){currentPosOffset.x + (scale.x * 0.5f) - 22,
+                  currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4},
+        FONT_SIZE_POPUP_NUMBER, 0, RED);
 
     // Changes position of next ad
     currentPosOffset.x += imageOffset.x;
@@ -179,8 +183,11 @@ void PopupStackDraw(PopupStack popupStack) {
 
   // Text for number
   const char *text = TextFormat("%d", currentPopup.number);
-  DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 22,
-           currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24, RED);
+  DrawTextEx(
+      font, text,
+      (Vector2){currentPosOffset.x + (scale.x * 0.5f) - 22,
+                currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4},
+      24, 0, RED);
 }
 
 void LoadAllPopupTextures(TextureHashMap *hashMap) {
