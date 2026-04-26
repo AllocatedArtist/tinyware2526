@@ -55,6 +55,7 @@ Captcha CaptchaDefault() {
 
 int CaptchaCheck(Captcha *currentCaptcha) {
   assert(currentCaptcha != NULL && "Captcha shouldn't be NULL");
+  assert(currentCaptcha->answerLength > 0 && "Invalid answer length");
 
   int currentKey = GetKeyPressed();
   if (!(currentKey >= KEY_ZERO && currentKey <= KEY_NINE) || currentKey == 0) {
@@ -63,6 +64,7 @@ int CaptchaCheck(Captcha *currentCaptcha) {
 
   int keyVal =
       KEY_ZERO + currentCaptcha->answer[currentCaptcha->currentDigitIdx];
+
   if (currentKey == keyVal) {
     ++currentCaptcha->currentDigitIdx;
     if (currentCaptcha->currentDigitIdx >= currentCaptcha->answerLength) {
@@ -147,6 +149,16 @@ void CaptchaCreateMath(Captcha *currentCaptcha) {
   currentCaptcha->type = CAPTCHA_TYPE_MATH;
 }
 
+void CaptchaTextDraw(const char *captchaText) {
+  Vector2 currentPosOffset = {GetScreenWidth() * 0.5f, GetScreenHeight() - 100};
+
+  int fontSize = 48;
+  size_t textLengthHalf = MeasureText(captchaText, fontSize) * 0.5f;
+  currentPosOffset.x -= textLengthHalf;
+  DrawText(captchaText, currentPosOffset.x, currentPosOffset.y, fontSize,
+           BLACK);
+}
+
 void CaptchaDrawMath(Captcha *currentCaptcha) {
   MathProblem mathProblem = currentCaptcha->data.mathProblem;
 
@@ -183,6 +195,8 @@ void CaptchaDrawMath(Captcha *currentCaptcha) {
 
     DrawText(text, textPos.x, textPos.y, fontSize, WHITE);
   }
+
+  CaptchaTextDraw("Solve the math problem.");
 }
 
 void CaptchaDrawCar(Captcha *currentCaptcha) {
@@ -205,6 +219,8 @@ void CaptchaDrawCar(Captcha *currentCaptcha) {
                   .width = scale.x,
                   .height = scale.y},
       (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, WHITE);
+
+  CaptchaTextDraw("Distance between cars?");
 }
 
 void CaptchaCreateRandom(TextureHashMap *hashMap, Captcha *currentCaptcha) {

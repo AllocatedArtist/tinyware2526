@@ -15,8 +15,8 @@
 #define POPUP_PRESSED_FAILURE 0
 
 struct {
-    Texture2D button;
-    Texture2D backing;
+  Texture2D button;
+  Texture2D backing;
 } Elements;
 
 typedef struct {
@@ -102,14 +102,19 @@ void PopupStackDraw(PopupStack popupStack) {
 
   Vector2 scale = {400.0f, 500.0f};
   Vector2 imageOffset;
-  imageOffset.x = scale.x * 0.1f;
-  imageOffset.y = scale.y * 0.1f;
+  imageOffset.x = scale.x * 0.05f;
+  imageOffset.y = scale.y * 0.05f;
 
   Vector2 borderOffset;
   borderOffset.x = scale.x * 0.012f;
   borderOffset.y = 32;
 
-  for (int i = 0; i < popupStack.headIdx; ++i) {
+  int maxDrawn = 5;
+  int lowerBound = popupStack.headIdx - maxDrawn;
+  if (lowerBound < 0)
+    lowerBound = 0;
+
+  for (int i = lowerBound; i < popupStack.headIdx; ++i) {
     Popup popup = popupStack.data[i];
 
     // Backing of popup
@@ -132,16 +137,15 @@ void PopupStackDraw(PopupStack popupStack) {
                     .height = scale.y},
         (Vector2){scale.x * 0.5f, scale.y * 0.5f}, 0.0f, GRAY);
 
-
     // Button for number
     DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 32,
-        currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, GRAY);
-    
+                currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, GRAY);
 
     // Text for number
     const char *text = TextFormat("%d", popup.number);
     DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 22,
-                currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24, RED);
+             currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24,
+             RED);
 
     // Changes position of next ad
     currentPosOffset.x += imageOffset.x;
@@ -171,12 +175,12 @@ void PopupStackDraw(PopupStack popupStack) {
 
   // Button for number
   DrawTexture(Elements.button, currentPosOffset.x + (scale.x * 0.5) - 32,
-      currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, WHITE);
+              currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y, WHITE);
 
   // Text for number
   const char *text = TextFormat("%d", currentPopup.number);
   DrawText(text, currentPosOffset.x + (scale.x * 0.5f) - 22,
-            currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24, RED);
+           currentPosOffset.y - (scale.y * 0.5f) - borderOffset.y + 4, 24, RED);
 }
 
 void LoadAllPopupTextures(TextureHashMap *hashMap) {
