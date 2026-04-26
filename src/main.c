@@ -27,6 +27,7 @@ struct {
   Timer popupSpawnTimer;
   Timer captchaSpawnTimer;
   Captcha currentCaptcha;
+  int initialLoad;
 } Globals;
 
 void PopupSpawnTimer() {
@@ -48,23 +49,27 @@ void LoseLife() {
 
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
-  Globals.popupStack = PopupStackCreate();
+  Globals.popupStack.headIdx = -1;
+
+  if (Globals.initialLoad) {
+    Globals.popupStack = PopupStackCreate();
+    InitAudioDevice();
+
+    Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
+    Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+    Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
+    Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
+    Sounds.vine = LoadSound("resources/audio/vineboom.pm3");
+
+    Globals.texturesMap = TextureHashMapCreate();
+
+    LoadAllPopupTextures(&Globals.texturesMap);
+    LoadAllCaptchaTextures(&Globals.texturesMap);
+  }
+
   Globals.completedCaptchas = 0;
 
-  InitAudioDevice();
-
-  Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
-  Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
-  Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
-  Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
-  Sounds.vine = LoadSound("resources/audio/vineboom.pm3");
-
-  Globals.texturesMap = TextureHashMapCreate();
-
   Globals.currentCaptcha = CaptchaDefault();
-
-  LoadAllPopupTextures(&Globals.texturesMap);
-  LoadAllCaptchaTextures(&Globals.texturesMap);
 
   Globals.popupSpawnTimer = TimerCreate(POPUP_SPAWNRATE, 1, PopupSpawnTimer);
   Globals.captchaSpawnTimer =
@@ -72,11 +77,57 @@ void InitGlobals() {
 
   TimerStart(&Globals.popupSpawnTimer);
   TimerStart(&Globals.captchaSpawnTimer);
+
+  Globals.initialLoad = 0;
+}
+
+void GameOverScreen() {
+  Vector2 currentPosOffset = {GetScreenWidth() * 0.5f,
+                              GetScreenHeight() * 0.5f};
+
+  const char *GAME_OVER = "Game Over";
+
+  int fontSize = 48;
+  size_t textLengthHalf = MeasureText(GAME_OVER, fontSize) * 0.5f;
+  currentPosOffset.x -= textLengthHalf;
+  DrawText(GAME_OVER, currentPosOffset.x, currentPosOffset.y, fontSize, RED);
+
+  const char *MSG = "YOUR PHONE EXPLODED FROM THE SHEER AMOUNT OF ADS";
+  fontSize = 24;
+
+  currentPosOffset =
+      (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
+
+  textLengthHalf = MeasureText(MSG, fontSize) * 0.5f;
+  currentPosOffset.x -= textLengthHalf;
+  currentPosOffset.y += 50;
+  DrawText(MSG, currentPosOffset.x, currentPosOffset.y, fontSize, GRAY);
+
+  const char *MSG2 = "CLICK SPACE TO PLAY AGAIN";
+  fontSize = 24;
+
+  currentPosOffset =
+      (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
+
+  textLengthHalf = MeasureText(MSG2, fontSize) * 0.5f;
+  currentPosOffset.x -= textLengthHalf;
+  currentPosOffset.y += 100;
+  DrawText(MSG2, currentPosOffset.x, currentPosOffset.y, fontSize, DARKGRAY);
+
+  if (IsKeyPressed(KEY_SPACE)) {
+    InitGlobals();
+  }
 }
 
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
+
+  if (Globals.playerLives <= 0) {
+    GameOverScreen();
+    EndDrawing();
+    return;
+  }
 
   TimerUpdate(&Globals.captchaSpawnTimer);
   TimerUpdate(&Globals.popupSpawnTimer);
@@ -123,6 +174,7 @@ void UpdateDrawLoop() {
 int main() {
   InitWindow(1000, 1000, "Window");
 
+  Globals.initialLoad = 1;
   InitGlobals();
 
   printf("Started Game\n");
