@@ -9,7 +9,7 @@
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 2.0
 #define CAPTCHA_SPAWNRATE 15.0
-#define MAX_CAPTCHAS_COMPLETED 15
+#define MAX_CAPTCHAS_COMPLETED 5
 #define MAX_ADS 10
 
 struct {
@@ -61,8 +61,8 @@ void LoseLife() {
 }
 
 void DrawLives() {
-    for (int i = 0; i < 3 - Globals.playerLives; i++) {
-        DrawTexture(LP.usedLife, GetScreenWidth() - (64 * (3 - i)), 0, WHITE);
+    for (int i = 0; i < PLAYER_LIVES - Globals.playerLives; i++) {
+        DrawTexture(LP.usedLife, GetScreenWidth() - (64 * (PLAYER_LIVES - i)), 0, WHITE);
     }
     for (int i = Globals.playerLives; i > 0; i--) {
         DrawTexture(LP.life, GetScreenWidth() - (64 * i), 0, WHITE);
@@ -70,11 +70,11 @@ void DrawLives() {
 }
 
 void DrawProgress() {
-    for (int i = 0; i < 3 - Globals.completedCaptchas; i++) {
-        DrawTexture(LP.progress, 64 * i, 0, WHITE);
-    }
     for (int i = 0; i < Globals.completedCaptchas; i++) {
         DrawTexture(LP.doneProgress, 64 * i, 0, WHITE);
+    }
+    for (int i = Globals.completedCaptchas; i < MAX_CAPTCHAS_COMPLETED; i++) {
+        DrawTexture(LP.progress, 64 * i, 0, WHITE);
     }
 }
 
