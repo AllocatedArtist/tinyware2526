@@ -1,0 +1,1 @@
+emcc -o game.html ../src/main.c -Os -Wall libraylib.web.a   -s USE_GLFW=3   -s ASYNCIFY   -s WASM_MEM_MAX=512mb   -s TOTAL_MEMORY=256mb   -s INITIAL_MEMORY=128mb   -s STACK_SIZE=8mb   --shell-file minshell.html -I ../3rdparty/raylib/src --preload-file ../resources
