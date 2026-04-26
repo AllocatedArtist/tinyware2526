@@ -10,15 +10,15 @@
 #define POPUP_SPAWNRATE 2.0
 #define CAPTCHA_SPAWNRATE 15.0
 #define MAX_CAPTCHAS_COMPLETED 15
-#define MAX_ADS
+#define MAX_ADS 10
 
 struct {
-    Music backgroundMusic;
-    Sound incorrect;
-    Sound adPop;
-    Sound captchaSpawn;
-    Sound captchaDone;
-    Sound vine;
+  Music backgroundMusic;
+  Sound incorrect;
+  Sound adPop;
+  Sound captchaSpawn;
+  Sound captchaDone;
+  Sound vine;
 } Sounds;
 
 struct {
@@ -40,12 +40,16 @@ void CaptchaSpawnTimer() {
   CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
 }
 
+void LoseGame() {
+  Globals.playerLives = 0;
+  TimerEnd(&Globals.popupSpawnTimer);
+  TimerEnd(&Globals.captchaSpawnTimer);
+}
+
 void LoseLife() {
   --Globals.playerLives;
   if (Globals.playerLives <= 0) {
-    // Lose Game
-    TimerEnd(&Globals.popupSpawnTimer);
-    TimerEnd(&Globals.captchaSpawnTimer);
+    LoseGame();
   }
 }
 
@@ -57,12 +61,12 @@ void InitGlobals() {
     Globals.popupStack = PopupStackCreate();
     InitAudioDevice();
 
-  Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
-  Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
-  Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
-  Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
-  Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
-  Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+    Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
+    Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+    Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
+    Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
+    Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
+    Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
 
     PlayMusicStream(Sounds.backgroundMusic);
     SetMusicVolume(Sounds.backgroundMusic, 1.0f);
@@ -176,6 +180,10 @@ void UpdateDrawLoop() {
     WinScreen();
     EndDrawing();
     return;
+  } else {
+    if (Globals.popupStack.headIdx + 1 >= MAX_ADS) {
+      LoseGame();
+    }
   }
 
   TimerUpdate(&Globals.popupSpawnTimer);
