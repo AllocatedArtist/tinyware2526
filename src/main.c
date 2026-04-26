@@ -8,15 +8,15 @@
 
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 2.0
-#define CAPTCHA_SPAWNRATE 15
+#define CAPTCHA_SPAWNRATE 1
 #define MAX_CAPTCHAS_COMPLETED 10
 
 struct {
-    Music backgroundMusic;
-    Sound incorrect;
-    Sound captchaSpawn;
-    Sound captchaDone;
-    Sound vine;
+  Music backgroundMusic;
+  Sound incorrect;
+  Sound captchaSpawn;
+  Sound captchaDone;
+  Sound vine;
 } Sounds;
 
 struct {
@@ -26,7 +26,6 @@ struct {
   TextureHashMap texturesMap;
   Timer popupSpawnTimer;
   Timer captchaSpawnTimer;
-  Sounds soundLib;
   Captcha currentCaptcha;
 } Globals;
 
@@ -42,6 +41,7 @@ void LoseLife() {
   --Globals.playerLives;
   if (Globals.playerLives <= 0) {
     // Lose Game
+    TimerEnd(&Globals.popupSpawnTimer);
     TimerEnd(&Globals.captchaSpawnTimer);
   }
 }
@@ -83,16 +83,18 @@ void UpdateDrawLoop() {
 
   if (!PopupStackIsEmpty(Globals.popupStack)) {
     PopupStackDraw(Globals.popupStack);
-    switch (PopupStackReadInput(Globals.popupStack)) {
-    case POPUP_PRESSED_FAILURE:
-      PlaySound(Sounds.incorrect);
-      LoseLife();
-      break;
-    case POPUP_PRESSED_SUCCESSFULLY:
-      PopupStackPop(&Globals.popupStack);
-      break;
-    default: // Idling
-      break;
+    if (Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
+      switch (PopupStackReadInput(Globals.popupStack)) {
+      case POPUP_PRESSED_FAILURE:
+        PlaySound(Sounds.incorrect);
+        LoseLife();
+        break;
+      case POPUP_PRESSED_SUCCESSFULLY:
+        PopupStackPop(&Globals.popupStack);
+        break;
+      default: // Idling
+        break;
+      }
     }
   }
 
@@ -132,8 +134,7 @@ int main() {
     UpdateDrawLoop();
   }
 
-  UnloadMusicStream(music);
-
+  UnloadMusicStream(Sounds.backgroundMusic);
   CloseAudioDevice();
 
   return 0;

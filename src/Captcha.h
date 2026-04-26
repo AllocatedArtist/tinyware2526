@@ -55,6 +55,7 @@ Captcha CaptchaDefault() {
 
 int CaptchaCheck(Captcha *currentCaptcha) {
   assert(currentCaptcha != NULL && "Captcha shouldn't be NULL");
+  assert(currentCaptcha->answerLength > 0 && "Invalid answer length");
 
   int currentKey = GetKeyPressed();
   if (!(currentKey >= KEY_ZERO && currentKey <= KEY_NINE) || currentKey == 0) {
@@ -63,6 +64,7 @@ int CaptchaCheck(Captcha *currentCaptcha) {
 
   int keyVal =
       KEY_ZERO + currentCaptcha->answer[currentCaptcha->currentDigitIdx];
+
   if (currentKey == keyVal) {
     ++currentCaptcha->currentDigitIdx;
     if (currentCaptcha->currentDigitIdx >= currentCaptcha->answerLength) {
