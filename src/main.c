@@ -8,17 +8,17 @@
 
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 2.0
-#define CAPTCHA_SPAWNRATE 15.0
+#define CAPTCHA_SPAWNRATE 5.0
 #define MAX_CAPTCHAS_COMPLETED 10
 
 struct {
-    Music backgroundMusic;
-    Sound incorrect;
-    Sound adSpawn;
-    Sound adPop;
-    Sound captchaSpawn;
-    Sound captchaDone;
-    Sound vine;
+  Music backgroundMusic;
+  Sound incorrect;
+  Sound adSpawn;
+  Sound adPop;
+  Sound captchaSpawn;
+  Sound captchaDone;
+  Sound vine;
 } Sounds;
 
 struct {
@@ -57,16 +57,16 @@ void InitGlobals() {
     Globals.popupStack = PopupStackCreate();
     InitAudioDevice();
 
-  Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
-  Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
-  Sounds.adSpawn = LoadSound("resources/audio/adpop.mp3");
-  Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
-  Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
-  Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
-  Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+    Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
+    Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+    Sounds.adSpawn = LoadSound("resources/audio/adpop.mp3");
+    Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
+    Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
+    Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
+    Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
 
-  PlayMusicStream(Sounds.backgroundMusic);
-  SetMusicVolume(Sounds.backgroundMusic, 1.0f);
+    PlayMusicStream(Sounds.backgroundMusic);
+    SetMusicVolume(Sounds.backgroundMusic, 1.0f);
 
     Globals.texturesMap = TextureHashMapCreate();
 
@@ -130,22 +130,31 @@ void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 
-  UpdatePopupSpawnTimer();
+  if (Globals.playerLives <= 0) {
+    GameOverScreen();
+    EndDrawing();
+    return;
+  }
+
+  TimerUpdate(&Globals.popupSpawnTimer);
+  TimerUpdate(&Globals.captchaSpawnTimer);
+
   UpdateMusicStream(Sounds.backgroundMusic);
-  if (!PopupStackIsEmpty(Globals.popupStack) &&
-      Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
+  if (!PopupStackIsEmpty(Globals.popupStack)) {
     PopupStackDraw(Globals.popupStack);
-    switch (PopupStackReadInput(Globals.popupStack)) {
-    case POPUP_PRESSED_FAILURE:
-      PlaySound(Sounds.incorrect);
-      LoseLife();
-      break;
-    case POPUP_PRESSED_SUCCESSFULLY:
-      PlaySound(Sounds.adPop);
-      PopupStackPop(&Globals.popupStack);
-      break;
-    default: // Idling
-      break;
+    if (Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
+      switch (PopupStackReadInput(Globals.popupStack)) {
+      case POPUP_PRESSED_FAILURE:
+        PlaySound(Sounds.incorrect);
+        LoseLife();
+        break;
+      case POPUP_PRESSED_SUCCESSFULLY:
+        PlaySound(Sounds.adPop);
+        PopupStackPop(&Globals.popupStack);
+        break;
+      default: // Idling
+        break;
+      }
     }
   }
 
@@ -154,12 +163,16 @@ void UpdateDrawLoop() {
     switch (CaptchaCheck(&Globals.currentCaptcha)) {
     case CAPTCHA_PRESSED_FAILURE:
       PlaySound(Sounds.incorrect);
-      CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
+      TimerStart(&Globals.captchaSpawnTimer);
+      Globals.currentCaptcha = CaptchaDefault();
       LoseLife();
       break;
     case CAPTCHA_PRESSED_SUCCESSFULLY:
       PlaySound(Sounds.captchaDone);
-      CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
+      Globals.currentCaptcha = CaptchaDefault();
+      if (Globals.playerLives > 0) {
+        TimerStart(&Globals.captchaSpawnTimer);
+      }
       break;
     default: // Idling
       break;
