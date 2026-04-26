@@ -9,7 +9,8 @@
 #define PLAYER_LIVES 3
 #define POPUP_SPAWNRATE 2.0
 #define CAPTCHA_SPAWNRATE 15.0
-#define MAX_CAPTCHAS_COMPLETED 10
+#define MAX_CAPTCHAS_COMPLETED 15
+#define MAX_ADS
 
 struct {
   Music backgroundMusic;
@@ -126,12 +127,55 @@ void GameOverScreen() {
   }
 }
 
+void WinScreen() {
+  Vector2 currentPosOffset = {GetScreenWidth() * 0.5f,
+                              GetScreenHeight() * 0.5f};
+
+  const char *GAME_OVER = "ADBLOCKER RESTORED! YOU WIN!";
+
+  int fontSize = 48;
+  size_t textLengthHalf = MeasureText(GAME_OVER, fontSize) * 0.5f;
+  currentPosOffset.x -= textLengthHalf;
+  DrawText(GAME_OVER, currentPosOffset.x, currentPosOffset.y, fontSize, RED);
+
+  const char *MSG =
+      "PLEASE DON'T TRUST PEOPLE ON REDDIT WHEN THEY SAY 100\% GUARANTEED";
+  fontSize = 24;
+
+  currentPosOffset =
+      (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
+
+  textLengthHalf = MeasureText(MSG, fontSize) * 0.5f;
+  currentPosOffset.x -= textLengthHalf;
+  currentPosOffset.y += 50;
+  DrawText(MSG, currentPosOffset.x, currentPosOffset.y, fontSize, GRAY);
+
+  const char *MSG2 = "CLICK SPACE TO PLAY AGAIN";
+  fontSize = 24;
+
+  currentPosOffset =
+      (Vector2){GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f};
+
+  textLengthHalf = MeasureText(MSG2, fontSize) * 0.5f;
+  currentPosOffset.x -= textLengthHalf;
+  currentPosOffset.y += 100;
+  DrawText(MSG2, currentPosOffset.x, currentPosOffset.y, fontSize, DARKGRAY);
+
+  if (IsKeyPressed(KEY_SPACE)) {
+    InitGlobals();
+  }
+}
+
 void UpdateDrawLoop() {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 
   if (Globals.playerLives <= 0) {
     GameOverScreen();
+    EndDrawing();
+    return;
+  } else if (Globals.completedCaptchas >= MAX_CAPTCHAS_COMPLETED) {
+    WinScreen();
     EndDrawing();
     return;
   }
@@ -170,6 +214,7 @@ void UpdateDrawLoop() {
     case CAPTCHA_PRESSED_SUCCESSFULLY:
       PlaySound(Sounds.captchaDone);
       Globals.currentCaptcha = CaptchaDefault();
+      ++Globals.completedCaptchas;
       if (Globals.playerLives > 0) {
         TimerStart(&Globals.captchaSpawnTimer);
       }
