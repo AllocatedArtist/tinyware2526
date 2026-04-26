@@ -29,6 +29,7 @@ struct {
   Sound captchaSpawn;
   Sound captchaDone;
   Sound vine;
+  Sound tacobell;
 } Sounds;
 
 struct {
@@ -60,6 +61,15 @@ void PopupSpawnTimer() {
 
 void CaptchaSpawnTimer() {
   CaptchaCreateRandom(&Globals.texturesMap, &Globals.currentCaptcha);
+  PlaySound(Sounds.vine);
+}
+
+void PlayIncorrectSfx() {
+  if (GetRandomValue(0, 1)) {
+    PlaySound(Sounds.incorrect);
+  } else {
+    PlaySound(Sounds.tacobell);
+  }
 }
 
 void LoseGame() {
@@ -109,6 +119,7 @@ void InitGlobals() {
     Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
     Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
     Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+    Sounds.tacobell = LoadSound("resources/audio/tacobell.mp3");
 
     Globals.mainFont =
         LoadFontEx("resources/fonts/Changa_One/ChangaOne-Regular.ttf",
@@ -269,7 +280,7 @@ void UpdateDrawLoop() {
     return;
   } else {
     if (Globals.popupStack.headIdx + 1 >= MAX_ADS) {
-      PlaySound(Sounds.incorrect);
+      PlayIncorrectSfx();
       LoseGame();
     }
   }
@@ -283,7 +294,7 @@ void UpdateDrawLoop() {
     if (Globals.currentCaptcha.type == CAPTCHA_TYPE_NONE) {
       switch (PopupStackReadInput(Globals.popupStack)) {
       case POPUP_PRESSED_FAILURE:
-        PlaySound(Sounds.incorrect);
+        PlayIncorrectSfx();
         LoseLife();
         break;
       case POPUP_PRESSED_SUCCESSFULLY:
@@ -300,7 +311,7 @@ void UpdateDrawLoop() {
     CaptchaDraw(&Globals.currentCaptcha, Globals.mainFont);
     switch (CaptchaCheck(&Globals.currentCaptcha)) {
     case CAPTCHA_PRESSED_FAILURE:
-      PlaySound(Sounds.incorrect);
+      PlayIncorrectSfx();
       TimerStart(&Globals.captchaSpawnTimer);
       Globals.currentCaptcha = CaptchaDefault();
       LoseLife();
@@ -325,7 +336,7 @@ void UpdateDrawLoop() {
 }
 
 int main() {
-  InitWindow(1000, 1000, "Window");
+  InitWindow(1920, 1080, "To Captcha Virus");
   SetTargetFPS(60);
 
   Globals.initialLoad = 1;
