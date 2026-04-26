@@ -21,6 +21,13 @@ struct {
 } Sounds;
 
 struct {
+    Texture2D life;
+    Texture2D usedLife;
+    Texture2D progress;
+    Texture2D doneProgress;
+} LP;
+
+struct {
   int playerLives;
   int completedCaptchas;
   PopupStack popupStack;
@@ -48,6 +55,24 @@ void LoseLife() {
   }
 }
 
+void DrawLives() {
+    for (int i = 0; i < 3 - Globals.playerLives; i++) {
+        DrawTexture(LP.usedLife, GetScreenWidth() - (64 * (3 - i)), 0, WHITE);
+    }
+    for (int i = Globals.playerLives; i > 0; i--) {
+        DrawTexture(LP.life, GetScreenWidth() - (64 * i), 0, WHITE);
+    }
+}
+
+void DrawProgress() {
+    for (int i = 0; i < 3 - Globals.completedCaptchas; i++) {
+        DrawTexture(LP.progress, 64 * i, 0, WHITE);
+    }
+    for (int i = 0; i < Globals.completedCaptchas; i++) {
+        DrawTexture(LP.doneProgress, 64 * i, 0, WHITE);
+    }
+}
+
 void InitGlobals() {
   Globals.playerLives = PLAYER_LIVES;
   Globals.popupStack.headIdx = -1;
@@ -56,12 +81,17 @@ void InitGlobals() {
     Globals.popupStack = PopupStackCreate();
     InitAudioDevice();
 
-  Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
-  Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
-  Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
-  Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
-  Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
-  Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+    Sounds.backgroundMusic = LoadMusicStream("resources/audio/background.mp3");
+    Sounds.incorrect = LoadSound("resources/audio/Laugh.wav");
+    Sounds.adPop = LoadSound("resources/audio/adpop.mp3");
+    Sounds.captchaSpawn = LoadSound("resources/audio/captchasound.mp3");
+    Sounds.captchaDone = LoadSound("resources/audio/celebration.mp3");
+    Sounds.vine = LoadSound("resources/audio/vineboom.mp3");
+
+    LP.life = LoadTexture("resources/textures/lives.png");
+    LP.usedLife = LoadTexture("resources/textures/usedLife.png");
+    LP.progress = LoadTexture("resources/textures/progress.png");
+    LP.doneProgress = LoadTexture("resources/textures/progressDone.png");
 
     PlayMusicStream(Sounds.backgroundMusic);
     SetMusicVolume(Sounds.backgroundMusic, 1.0f);
@@ -176,6 +206,9 @@ void UpdateDrawLoop() {
       break;
     }
   }
+
+  DrawLives();
+  DrawProgress();
 
   EndDrawing();
 }
